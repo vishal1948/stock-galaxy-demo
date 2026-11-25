@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:" />
+  <title>Stock Galaxy App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<!-- Shown instead of the app while it is locked (main/main.js). Only the 'open' IPC calls work here. -->
+<body class="lock-page">
+  <div class="lock-card">
+    <div class="setup-head"><img src="assets/icon.png" alt="" /><h2><span id="lkName"></span> is locked</h2></div>
+    <p id="lkMessage" class="banner lock"></p>
+    <p class="note">Your bills, stock and reports are safe on this computer, and backups keep running.
+      The app opens again by itself as soon as this is sorted out.</p>
+
+    <div id="lkKeyBox" class="card">
+      <h3>Shop key</h3>
+      <div class="bar wrap">
+        <input id="lkKey" placeholder="Shop key from your vendor" />
+        <button id="lkActivate">Activate</button>
+        <button id="lkSync" class="ghost">Contact now</button>
+      </div>
+      <p id="lkKeyMsg"></p>
+      <p id="lkInfo" class="note"></p>
+    </div>
+
+    <div id="lkUpdateBox" class="card">
+      <h3>Update</h3>
+      <p><span id="lkVersion"></span> - <span id="lkUpdate"></span></p>
+      <div class="actions">
+        <button id="lkCheck" class="ghost">Check for updates</button>
+        <button id="lkDownload" hidden>Download update</button>
+        <button id="lkInstall" hidden>Install and restart</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="lock.js"></script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'self' 'wasm-unsafe-eval'" />
+  <title>Stock Galaxy App - live demo</title>
+  <meta name="description" content="Live demo of Stock Galaxy App: offline billing, stock, barcode and reports for shops." />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="stylesheet" href="demo.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link id="halfPage" rel="stylesheet" href="half-page.css" disabled />
+</head>
+<body class="no-gst">
+  <aside id="side">
+    <button id="sideToggle" class="side-toggle" title="Show or hide the menu names"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <div class="side-shop">
+      <img class="side-logo" id="sideLogo" alt="" hidden />
+      <div class="side-name" id="sideName"></div>
+    </div>
+    <nav>
+    <button class="tab active" data-view="billing" title="Billing"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.5h12v19l-3-2-3 2-3-2-3 2z"/><path d="M9 7.5h6M9 11.5h6M9 15.5h3.5"/></svg><span>Billing</span></button>
+    <button class="tab" data-view="bills" title="Find Bill"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20.5 20.5l-5.4-5.4"/></svg><span>Find Bill</span></button>
+    <button class="tab owner-only" data-view="udhaar" title="Udhaar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h11.5a2 2 0 0 1 2 2v15H7a2 2 0 0 1-2-2z"/><path d="M5 18.5a2 2 0 0 1 2-2h11.5"/><path d="M9 7.5h6M9 11h4"/></svg><span>Udhaar</span></button>
+    <button class="tab owner-only" data-view="products" title="Products"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5l9-4.5 9 4.5-9 4.5z"/><path d="M3 7.5v9l9 4.5 9-4.5v-9"/><path d="M12 12v9"/></svg><span>Products</span></button>
+    <button class="tab owner-only" data-view="stockin" title="Stock In"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11.5"/><path d="M7.5 10l4.5 4.5 4.5-4.5"/><path d="M4 16.5V20h16v-3.5"/></svg><span>Stock In</span></button>
+    <button class="tab owner-only" data-view="adjust" title="Adjust Stock"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h9M17.5 6.5H20M4 12h3.5M11.5 12H20M4 17.5h11M19 17.5h1"/><circle cx="15.5" cy="6.5" r="2"/><circle cx="9.5" cy="12" r="2"/><circle cx="17" cy="17.5" r="2"/></svg><span>Adjust Stock</span></button>
+    <button class="tab owner-only" data-view="reports" title="Reports"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20.5h18"/><path d="M6 20V11M11 20V5M16 20v-6M20 20V9"/></svg><span>Reports</span></button>
+    <button class="tab owner-only" data-view="settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg><span>Settings</span></button>
+    </nav>
+    <div id="whoBox" class="who" hidden>
+      <div class="who-text"><b id="whoName"></b><span id="whoRole"></span></div>
+      <button id="logout" title="Switch user"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h10"/></svg><span>Switch user</span></button>
+    </div>
+    <div class="side-foot"><img src="assets/icon.png" alt="" /><span class="app-name"></span></div>
+  </aside>
+
+  <main>
+    <div class="demo-bar"><b>LIVE DEMO</b><span>A sample shop with a month of bills. Try billing, Find Bill, Reports and Settings - changes reset when you reload.</span>
+      <a href="https://github.com/vishal1948/pk-galaxy-releases/releases/latest" target="_blank" rel="noopener">Download for Windows</a></div>
+    <div id="banner" class="banner" hidden></div>
+    <section id="billing" class="view active">
+      <h2>New Bill</h2>
+      <div class="bar">
+        <select id="salesman"></select>
+        <input id="salesmanName" class="owner-only" placeholder="New salesman name" />
+        <button id="addSalesman" class="ghost owner-only">Add</button>
+      </div>
+      <div class="bar">
+        <div class="suggest-wrap">
+          <input id="custName" placeholder="Customer name" maxlength="60" autocomplete="off" />
+          <ul class="suggest" hidden></ul>
+        </div>
+        <div class="suggest-wrap">
+          <input id="custPhone" placeholder="Mobile (10 digits)" inputmode="numeric" maxlength="14" autocomplete="off" />
+          <ul class="suggest" hidden></ul>
+        </div>
+        <label class="check wa-only"><input id="sendWa" type="checkbox" checked /> Send bill on WhatsApp</label>
+      </div>
+      <div class="bar gst-only">
+        <input id="custGstin" placeholder="Customer GSTIN (only for a business buyer)" maxlength="15" autocomplete="off" />
+        <label class="check"><input id="interstate" type="checkbox" /> Other state (IGST)</label>
+      </div>
+      <table class="bill-lines">
+        <thead><tr><th>Barcode</th><th>Description</th><th class="sc">Size</th><th class="sc">Colour</th><th class="num">Qty</th>
+          <th class="num">Price ₹</th><th class="num">Amount</th><th></th></tr></thead>
+        <tbody id="lineRows"></tbody>
+      </table>
+      <div class="actions"><button id="addLine" class="ghost">+ Add line</button>
+        <button id="exchangeBtn" class="ghost">Exchange - items coming back</button></div>
+
+      <!-- exchange: items coming back from an old bill pay for this one (main/returns.js) -->
+      <div id="exchangeBox" class="card exch" hidden>
+        <div class="exch-head"><b>Items coming back</b>
+          <button id="exClear" class="ghost small">No exchange</button></div>
+        <div class="bar">
+          <input id="exBillNo" type="number" min="1" step="1" placeholder="Number of the bill they came from" />
+          <button id="exLoad" class="ghost">Show its items</button>
+        </div>
+        <p id="exInfo" class="note"></p>
+        <table id="exTable" hidden>
+          <thead><tr><th>Barcode</th><th>Item</th><th class="sc">Size</th><th class="sc">Colour</th><th class="num">Sold</th>
+            <th class="num">Back before</th><th class="num">Coming back</th><th class="num">Value ₹</th></tr></thead>
+          <tbody id="exRows"></tbody>
+        </table>
+      </div>
+
+      <div class="totals">
+        <div class="tbox"><label>Subtotal</label><b>₹ <span id="subtotal">0.00</span></b></div>
+        <div class="tbox"><label>Discount %</label><input id="discountPct" type="number" min="0" max="100" step="0.5" placeholder="0" /></div>
+        <div class="tbox"><label>Discount ₹</label><input id="discount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="tbox grand"><label>Total</label><b>₹ <span id="total">0.00</span></b></div>
+        <div class="tbox gst-only"><label>Of which GST</label><b>₹ <span id="gstPart">0.00</span></b>
+          <small class="note">Rates include GST · garments 5% up to ₹2,500 a piece, 18% above</small></div>
+        <div class="tbox exch-only"><label>Exchange credit</label><b>− ₹ <span id="exCredit">0.00</span></b></div>
+        <div class="tbox grand exch-only"><label>To pay</label><b>₹ <span id="toPay">0.00</span></b></div>
+      </div>
+      <p id="exNote" class="note exch-only"></p>
+
+      <h3>Payment</h3>
+      <div id="payRows"></div>
+      <div class="actions">
+        <button id="addPay" class="ghost">+ Split payment</button>
+        <span id="remaining"></span>
+      </div>
+
+      <div class="actions"><button id="saveBill">Save Bill</button><span id="billMsg"></span></div>
+    </section>
+
+    <section id="bills" class="view">
+      <h2>Find Bill</h2>
+      <div class="bar">
+        <input id="billNo" placeholder="Bill number, or CN-5 for a credit note" />
+        <button id="findBill">Search</button>
+      </div>
+      <div id="billResult"></div>
+      <h3>Last 10 bills</h3>
+      <p class="note">Click a bill to open it. To take items back without a new bill, open the bill and press "Return items".</p>
+      <div id="recentBills"></div>
+      <h3>Last 10 credit notes</h3>
+      <div id="recentNotes"></div>
+    </section>
+
+    <section id="udhaar" class="view">
+      <h2>Udhaar</h2>
+      <p id="udOff" class="banner warn" hidden>The payment mode "Pay Later (Udhaar)" is switched off - switch it on in Settings &gt; Payment modes to give udhaar on bills.</p>
+      <div class="totals">
+        <div class="tbox grand"><label>Total owed to you</label><b>₹ <span id="udTotal">0.00</span></b></div>
+        <div class="tbox"><label>Customers who owe</label><b id="udCount">0</b></div>
+      </div>
+      <input id="udSearch" placeholder="Search by name or mobile" autocomplete="off" />
+      <div id="udList"></div>
+
+      <div id="udAccount" class="card ud-acc" hidden>
+        <div class="exch-head"><div><b id="udName"></b> <span id="udPhone" class="note"></span></div>
+          <button id="udClose" class="ghost small">Close</button></div>
+        <div class="totals">
+          <div class="tbox grand"><label>Owes now</label><b>₹ <span id="udDue">0.00</span></b></div>
+          <div class="tbox"><label>Credit limit</label><b id="udLimitShow"></b></div>
+        </div>
+        <div class="ud-grid">
+          <div>
+            <h3>Payment received</h3>
+            <div class="bar wrap">
+              <input id="udAmount" type="number" min="0" step="0.01" placeholder="Amount ₹" />
+              <select id="udMethod"></select>
+              <input id="udNoteNo" placeholder="CN number" hidden />
+              <input id="udNote" placeholder="Note (optional)" maxlength="100" />
+            </div>
+            <div class="actions"><button id="udReceive">Save payment and print receipt</button></div>
+          </div>
+          <div>
+            <h3>Credit limit</h3>
+            <p class="note">Over the limit only the owner can bill on udhaar. Empty = no limit.</p>
+            <div class="bar"><input id="udLimit" type="number" min="0" step="1" placeholder="No limit" /><button id="udLimitSave" class="ghost">Save limit</button></div>
+          </div>
+        </div>
+        <span id="udMsg"></span>
+        <h3>Account</h3>
+        <div id="udHistory"></div>
+      </div>
+    </section>
+
+    <section id="products" class="view">
+      <h2>Products</h2>
+
+      <!-- barcode stickers on A4 sticker sheets (renderer/stickers.js) -->
+      <details class="card stk-card">
+        <summary><b>Barcode stickers</b> <small>print stickers for items without a barcode on their tag</small></summary>
+        <div class="bar wrap">
+          <input id="stkScan" placeholder="Scan or type a barcode, then Enter (adds 1 sticker)" autocomplete="off" />
+          <button id="stkLast" class="ghost">Add the last stock entry</button>
+          <button id="stkClear" class="ghost small">Clear list</button>
+        </div>
+        <table id="stkTable" hidden>
+          <thead><tr><th>Barcode</th><th>Name</th><th>Size</th><th>Colour</th><th class="num">MRP ₹</th><th class="num">Stickers</th><th></th></tr></thead>
+          <tbody id="stkRows"></tbody>
+        </table>
+        <div class="stk-opts">
+          <label class="opt-row">Sticker sheet <select id="stkSheet"></select></label>
+          <small id="stkSize" class="stk-size"></small>
+          <label class="opt-row">Start at sticker no. <input id="stkStart" type="number" min="1" step="1" value="1" /></label>
+          <label class="opt-row">Move right (mm) <input id="stkDx" type="number" min="-10" max="10" step="0.5" /></label>
+          <label class="opt-row">Move down (mm) <input id="stkDy" type="number" min="-10" max="10" step="0.5" /></label>
+        </div>
+        <p class="note">Each sticker: barcode, price and its number. Printed at 100% (actual size) on A4. "Start at sticker no." uses a
+          part-used sheet (counting across, then down). Print on plain paper first and hold it against a sticker sheet; if it is off,
+          move it a little. If you print the saved PDF yourself, choose "Actual size" (not "Fit"). Laser sticker sheets only in a laser printer.</p>
+        <div class="actions"><b id="stkTotal"></b>
+          <button id="stkPdf" class="ghost">Save PDF to check</button><button id="stkPrint">Print stickers</button></div>
+        <span id="stkMsg"></span>
+      </details>
+
+      <div class="bar wrap prod-bar">
+        <input id="search" placeholder="Search by barcode, name, size or colour" />
+        <select id="prodCat" title="Show one category (with its sub categories)"></select>
+      </div>
+      <!-- give the ticked items a category (renderer/categories.js) -->
+      <div id="setCatBar" class="bar wrap set-cat" hidden>
+        <b id="setCatCount"></b>
+        <input id="setCatPick" list="catPaths" placeholder="Category for the ticked items" autocomplete="off" />
+        <button id="setCatGo" class="ghost">Set category</button><button id="setCatNone" class="ghost small">Remove category</button>
+        <span id="setCatMsg"></span>
+      </div>
+      <table>
+        <thead><tr><th class="tick"><input id="prodTickAll" type="checkbox" title="Tick all shown" /></th><th>Barcode</th><th>Name</th>
+          <th>Category</th><th>Size</th><th>Colour</th><th class="gst-only">HSN</th><th class="gst-only">GST</th>
+          <th class="num">Rate ₹</th><th class="num">Stock</th></tr></thead>
+        <tbody id="productRows"></tbody>
+      </table>
+    </section>
+
+    <section id="stockin" class="view">
+      <h2>Stock In</h2>
+      <table>
+        <thead><tr><th>Barcode</th><th>Name</th><th class="catc">Category</th><th class="sc">Size</th><th class="sc">Colour</th>
+          <th class="hsn gst-only">HSN</th><th class="gstc gst-only">GST</th><th class="num">Qty</th><th class="num">Rate ₹</th><th></th></tr></thead>
+        <tbody id="entryRows"></tbody>
+      </table>
+      <!-- every switched-on category, for the Category boxes (type to search) -->
+      <datalist id="catPaths"></datalist>
+      <div class="actions">
+        <button id="addRow" class="ghost">+ Add row</button>
+        <button id="save">Save stock</button>
+        <span id="msg"></span>
+      </div>
+
+      <div class="card import-card">
+        <div class="import-head">
+          <div><b>Many products at once?</b>
+            <small>Fill an Excel sheet (Barcode, Name, Size, Colour, Qty, Rate - HSN and GST % if you use GST) and import it.
+              You see every row before anything is saved.</small></div>
+          <div class="actions">
+            <button id="importTemplate" class="ghost small">Get the Excel template</button>
+            <button id="importPick" class="ghost">Import from Excel...</button>
+          </div>
+        </div>
+        <div id="importPreview" hidden>
+          <p id="importSummary"></p>
+          <div class="import-table"><table>
+            <thead><tr><th>Row</th><th>Barcode</th><th>Name</th><th>Size</th><th>Colour</th><th class="num">Qty</th><th class="num">Rate ₹</th><th>Result</th></tr></thead>
+            <tbody id="importRows"></tbody>
+          </table></div>
+          <div class="actions"><button id="importGo">Import</button><button id="importCancel" class="ghost">Cancel</button></div>
+        </div>
+        <span id="importMsg"></span>
+      </div>
+      <p class="note">Every item has one <b>Barcode</b>: scan the barcode on its tag, or type the shop's own number if it has none.
+        Each size and colour is its own item with its own barcode. A barcode already saved fills its row by itself.</p>
+      <p class="note gst-only">GST "Garment" = 5% for a piece up to ₹2,500 and 18% above, worked out on each bill from the price.
+        Choose a fixed rate only for items that are not garments. HSN left empty uses the default HSN from Settings.</p>
+
+      <h3>Last stock entry</h3>
+      <div id="lastEntry"></div>
+
+    </section>
+
+    <section id="adjust" class="view">
+      <h2>Adjust Stock</h2>
+      <div class="bar">
+        <input id="adjCode" placeholder="Scan or type the barcode" />
+        <span id="adjName"></span>
+      </div>
+      <div class="bar">
+        <input id="adjQty" type="number" step="1" placeholder="Change (+ add, − remove)" />
+        <input id="adjNote" placeholder="Reason (entry mistake, damaged, lost...)" />
+        <button id="adjSave">Save adjustment</button>
+        <span id="adjMsg"></span>
+      </div>
+      <p class="note">Use + to add stock and − to remove it. To fix a wrong stock-in of 20 that should have been 10, enter −10.</p>
+      <h3>Last 10 adjustments</h3>
+      <div id="adjRecent"></div>
+      <h3 id="adjHistTitle" hidden></h3>
+      <div id="adjHistory"></div>
+    </section>
+
+    <section id="reports" class="view">
+      <h2>Reports</h2>
+      <div class="rep-stack">
+        <div class="card">
+          <h3>1. Period</h3>
+          <div class="bar wrap">
+            <select id="repPeriod">
+              <option value="custom">Custom date</option>
+              <option value="today">Today</option>
+              <option value="week">This week</option>
+              <option value="month" selected>This month</option>
+              <option value="year">This year</option>
+            </select>
+            <label>From <input id="repFrom" type="date" /></label>
+            <label>To <input id="repTo" type="date" /></label>
+          </div>
+          <p id="repPeriodText" class="note"></p>
+        </div>
+
+        <div class="card">
+          <h3>2. Sales report</h3>
+          <div class="bar wrap">
+            <select id="salesBy">
+              <option value="all">All sales</option>
+              <option value="salesman">By salesman</option>
+              <option value="code">By barcode</option>
+              <option value="category">By category</option>
+              <option value="bills">By bill number</option>
+            </select>
+            <select id="repSalesman" class="rep-opt" data-for="salesman"></select>
+            <input id="repCode" class="rep-opt" data-for="code" placeholder="Scan or type the barcode" />
+            <span class="rep-opt range" data-for="bills">
+              <input id="repBillFrom" type="number" min="1" step="1" placeholder="From bill no." />
+              <span>to</span>
+              <input id="repBillTo" type="number" min="1" step="1" placeholder="To bill no." />
+            </span>
+            <button id="runSales">Show sales report</button>
+          </div>
+          <p class="note rep-opt" data-for="bills">A bill number range picks the bills by number, so the period above is not used.</p>
+          <p class="note rep-opt" data-for="code">Amounts are the item prices on the bills, before any bill discount.</p>
+          <div id="salesOut" class="rep-out"></div>
+          <div id="salesActions" class="actions rep-actions" hidden>
+            <button id="salesPrint" class="ghost">Print</button>
+            <button id="salesCsv" class="ghost">Export to Excel</button>
+          </div>
+          <p id="salesMsg"></p>
+        </div>
+
+        <div class="card">
+          <h3>3. Stock report</h3>
+          <p class="note">Opening stock, stock in, sold, adjustments and closing stock of every product for the period.</p>
+          <div class="bar"><button id="runStock">Show stock report</button></div>
+          <div id="stockOut" class="rep-out"></div>
+          <div id="stockActions" class="actions rep-actions" hidden>
+            <button id="stockPrint" class="ghost">Print</button>
+            <button id="stockCsv" class="ghost">Export to Excel</button>
+          </div>
+          <p id="stockMsg"></p>
+        </div>
+
+        <div class="card gst-only">
+          <h3>4. GST report</h3>
+          <p class="note">For GST filing (GSTR-1): tax invoices of the period - business (B2B) bills one by one, the other bills by
+            GST rate, and an HSN summary. Bills made while GST billing was off are not in it.</p>
+          <div class="bar"><button id="runGst">Show GST report</button></div>
+          <div id="gstOut" class="rep-out"></div>
+          <div id="gstActions" class="actions rep-actions" hidden>
+            <button id="gstPrint" class="ghost">Print</button>
+            <button id="gstCsv" class="ghost">Export to Excel</button>
+          </div>
+          <p id="gstMsg"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="settings" class="view">
+      <h2>Settings</h2>
+      <div class="set-grid">
+        <h2 class="set-section">Billing &amp; printing<small>how bills are made, printed and paid</small></h2>
+
+        <div class="card">
+          <h3>Bill &amp; printing</h3>
+          <div class="opt-block">
+            <b>Bill format</b>
+            <div class="seg" id="billFormatSeg">
+              <label><input type="radio" name="billKind" value="a4" /> A4 regular</label>
+              <label><input type="radio" name="billKind" value="thermal" /> Thermal receipt</label>
+            </div>
+            <small id="billFormatText"></small>
+            <label class="opt-row" id="rollRow">Paper roll width
+              <select id="rollWidth">
+                <option value="thermal_80">80 mm (3 inch, most common)</option>
+                <option value="thermal_58">58 mm (2 inch, small printers)</option>
+              </select>
+            </label>
+            <label class="opt-row" id="billColourRow">Bill colour
+              <select id="billTheme">
+                <option value="indigo">Indigo</option><option value="orange">Orange</option><option value="green">Green</option>
+                <option value="maroon">Maroon</option><option value="black">Black</option>
+              </select>
+            </label>
+          </div>
+          <label class="switch-row">
+            <span><b>Print bills</b><small id="optPrintText"></small></span>
+            <input id="optPrint" type="checkbox" class="switch" />
+          </label>
+          <div class="opt-block" id="printerBlock">
+            <label class="opt-row">Printer
+              <select id="printerName"></select>
+            </label>
+            <div class="actions"><button id="testPrint" class="ghost small">Print a test bill</button><button id="refreshPrinters" class="ghost small">Find printers again</button></div>
+          </div>
+          <span id="printMsg"></span>
+        </div>
+
+        <div class="card">
+          <h3>WhatsApp &amp; barcode</h3>
+          <label class="switch-row">
+            <span><b>WhatsApp billing</b><small id="optWaText"></small></span>
+            <input id="optWa" type="checkbox" class="switch" />
+          </label>
+          <label class="switch-row">
+            <span><b>Barcode billing</b><small id="optBarcodeText"></small></span>
+            <input id="optBarcode" type="checkbox" class="switch" />
+          </label>
+          <span id="optMsg"></span>
+        </div>
+
+        <div class="card" id="returnsBox">
+          <h3>Returns &amp; exchanges</h3>
+          <p class="note">Items that come back get a credit note (CN) for what the customer paid - no cash back. It pays an exchange
+            bill at once, or any later bill (payment mode "Credit note"). The stock comes back.</p>
+          <label class="opt-row">Returns allowed for (days after the bill)
+            <input id="returnDays" type="number" min="0" max="999" step="1" class="short-num" /></label>
+          <small class="note">0 = no limit. After the limit only the owner can take items back.</small>
+          <div class="actions"><button id="returnDaysSave" class="ghost small">Save</button><span id="returnsMsg"></span></div>
+        </div>
+
+        <div class="card" id="gstBox">
+          <h3>GST billing</h3>
+          <label class="switch-row">
+            <span><b>GST billing</b><small id="optGstText"></small></span>
+            <input id="optGst" type="checkbox" class="switch" />
+          </label>
+          <div class="opt-block gst-only">
+            <label class="opt-row">Default HSN code
+              <input id="gstHsn" maxlength="8" inputmode="numeric" placeholder="e.g. 6205 (men's shirts)" />
+            </label>
+            <small>Used for items saved without their own HSN. Garments are in HSN chapters 61 (knitted) and 62 (woven).</small>
+            <div class="actions"><button id="gstHsnSave" class="ghost small">Save HSN</button></div>
+          </div>
+          <span id="gstMsg2"></span>
+        </div>
+
+        <div class="card wide">
+          <h3>Payment modes <span id="modeCount" class="mode-count"></span></h3>
+          <p class="note">Switch on the ways your shop takes payment - only those show on Billing. Add your own below if it is not in the list.
+            A mode used on old bills can be switched off but not removed.</p>
+          <div id="modeRows"></div>
+          <div class="bar wrap">
+            <input id="modeNew" placeholder="New payment mode, e.g. Paytm or Cheque" maxlength="30" />
+            <button id="modeAdd" class="ghost">Add</button>
+          </div>
+          <span id="modeMsg"></span>
+        </div>
+
+        <h2 class="set-section">Shop &amp; team<small>what prints on every bill, who sells, and who may log in</small></h2>
+
+        <div class="card">
+          <h3>Shop details</h3>
+          <div class="logo-row">
+            <img id="logoPreview" alt="" hidden />
+            <span id="logoNone" class="note">No logo yet - bills print without one.</span>
+            <button id="logoChange" class="ghost small">Change logo</button>
+            <button id="logoRemove" class="ghost small">Remove</button>
+            <input id="logoFile" type="file" accept="image/png,image/jpeg" hidden />
+          </div>
+          <div id="settingsForm"></div>
+          <div class="actions"><button id="saveSettings">Save</button><span id="setMsg"></span></div>
+        </div>
+
+        <div class="card" id="salesmenBox">
+          <h3>Salesmen</h3>
+          <p class="note">A salesman with a PIN can log in when "Ask for a PIN" is on. Salesmen can only make and find bills.</p>
+          <table><tbody id="salesmenRows"></tbody></table>
+        </div>
+
+        <div class="card" id="usersBox">
+          <h3>Users &amp; PINs</h3>
+          <div class="opt-block">
+            <b>Owner PIN</b>
+            <small id="ownerPinText"></small>
+            <div class="bar wrap">
+              <input id="ownerOld" type="password" inputmode="numeric" maxlength="6" placeholder="Current PIN" autocomplete="off" />
+              <input id="ownerNew" type="password" inputmode="numeric" maxlength="6" placeholder="New PIN (4-6 digits)" autocomplete="off" />
+              <button id="ownerSave" class="ghost small">Save owner PIN</button>
+            </div>
+          </div>
+          <label class="switch-row">
+            <span><b>Ask for a PIN when the app opens</b><small id="optLoginText"></small></span>
+            <input id="optLogin" type="checkbox" class="switch" />
+          </label>
+          <span id="usersMsg"></span>
+        </div>
+
+        <h2 class="set-section">Products<small>categories of what you sell</small></h2>
+
+        <div class="card wide" id="catBox">
+          <h3>Categories</h3>
+          <p class="note">Up to 3 levels, e.g. <b>Pants</b> › <b>Cargo pants</b> › <b>₹500–999</b>. Give each item its category in Stock In or
+            Products. HSN and GST set on a category fill in for new items under it (a sub category without its own uses its parent's).
+            A category used by items is switched off, not deleted, so old bills and reports keep its name.</p>
+          <div class="bar wrap">
+            <input id="catNew" placeholder="New main category, e.g. Pants" maxlength="40" />
+            <button id="catAddMain" class="ghost">Add main category</button>
+          </div>
+          <div id="catTree"></div>
+          <div id="catEdit" class="cat-edit" hidden>
+            <h4 id="catEditTitle"></h4>
+            <div class="cat-form">
+              <label>Name <input id="catName" maxlength="40" /></label>
+              <label>Under <select id="catParent"></select></label>
+              <label>Default HSN <input id="catHsn" maxlength="8" inputmode="numeric" placeholder="from the parent" /></label>
+              <label>Default GST <select id="catGst">
+                <option value="">from the parent</option><option value="auto">Garment (5% / 18%)</option>
+                <option value="0">0%</option><option value="0.25">0.25%</option><option value="3">3%</option><option value="5">5%</option>
+                <option value="12">12%</option><option value="18">18%</option><option value="28">28%</option><option value="40">40%</option></select></label>
+            </div>
+            <div class="actions"><button id="catSave">Save</button><button id="catCancel" class="ghost">Cancel</button></div>
+          </div>
+          <span id="catMsg"></span>
+        </div>
+
+        <h2 class="set-section">Data &amp; safety<small>where everything is saved, and the copies that keep it safe</small></h2>
+
+        <div class="card wide">
+          <h3>Data folder</h3>
+          <p class="note">Everything is saved in this one folder - the database, bills, backups and Excel files - each in its own subfolder.
+            Copy this folder to a pen drive now and then for safety.</p>
+          <div class="data-root">
+            <div class="folder-info"><b>Main folder</b><span class="path" id="dataRoot"></span></div>
+            <div class="folder-btns">
+              <button id="openDataRoot" class="ghost small">Open</button>
+              <button id="moveData" class="ghost small">Move to another folder...</button>
+            </div>
+          </div>
+          <div id="folderRows"></div>
+          <div class="actions"><span id="dataFilesStatus" class="file-status"></span><button id="updateFiles" class="ghost small">Update Excel files now</button></div>
+          <span id="folderMsg"></span>
+        </div>
+
+        <div class="card wide" id="backupBox">
+          <h3>Backup &amp; Google Drive copy</h3>
+          <div class="backup-grid">
+            <div>
+              <h4>Backups on this PC</h4>
+              <p class="note">A complete copy of all data every hour, one file per day, last 30 days, in the Backups folder.</p>
+              <p id="backupInfo"></p>
+              <div class="actions"><button id="backupNow" class="ghost">Back up now</button></div>
+            </div>
+            <div>
+              <h4>Google Drive copy</h4>
+              <p class="note">Keeps a copy of the backups, bills and Excel files in a Google Drive folder, so they are safe even if this PC
+                is lost or its disk fails. Needs <b>Google Drive for Desktop</b> (free) installed and signed in. The live database itself
+                is never put there - only finished copies.</p>
+              <div id="cloudInfo" class="lic"></div>
+              <div class="actions wrap">
+                <button id="cloudChoose" class="ghost">Choose Google Drive folder...</button>
+                <button id="cloudNow" class="ghost" hidden>Copy now</button>
+                <button id="cloudStop" class="ghost small" hidden>Stop copying</button>
+              </div>
+            </div>
+            <div>
+              <h4>Restore</h4>
+              <p class="note">Puts a backup back - from this PC or from the Google Drive copy, for example on a new PC.
+                The data in use now is saved first, so a restore can be undone.</p>
+              <div class="actions"><button id="restoreBtn" class="ghost">Restore from backup...</button></div>
+            </div>
+          </div>
+          <p id="cloudMsg"></p>
+        </div>
+
+        <h2 class="set-section">App<small>version, updates and licence</small></h2>
+
+        <div class="card" id="aboutBox">
+          <h3>About &amp; updates</h3>
+          <p><span class="app-name"></span> <b id="appVersion"></b></p>
+          <p id="updateStatus"></p>
+          <div class="actions">
+            <button id="btnCheck" class="ghost">Check for updates</button>
+            <button id="btnDownload" hidden>Download update</button>
+            <button id="btnInstall" hidden>Install and restart</button>
+          </div>
+        </div>
+
+        <div class="card" id="monBox" hidden>
+          <h3>Activation &amp; support</h3>
+          <div id="licStatus" class="lic"></div>
+          <p id="monInfo"></p>
+          <div class="bar wrap">
+            <input id="controlKey" placeholder="Shop key from your vendor" />
+            <button id="btnKey">Activate</button>
+            <button id="btnSync" class="ghost">Contact now</button>
+          </div>
+          <p id="keyMsg"></p>
+          <p class="note">One shop key works on one computer. After activating, the app needs the internet at least once every 7 days.
+            It tells your vendor its version, backup status, database size, last bill number and error count so problems can be fixed early.
+            It never sends customer names, bills or sales.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- first start of a new install: the shop's own details -->
+  <div id="setup" class="setup" hidden>
+    <div class="setup-card">
+      <div class="setup-head"><img src="assets/icon.png" alt="" /><h2>Welcome to <span class="app-name"></span></h2></div>
+      <p class="note">Set up your shop. These details print on every bill, and you can change them later in Settings.</p>
+      <div class="setup-grid">
+        <label>Shop name *<input id="suName" maxlength="60" /></label>
+        <label>What you sell (tagline)<input id="suTag" maxlength="80" placeholder="e.g. Men's Wear &amp; Accessories" /></label>
+        <label class="wide">Address<input id="suAddr" maxlength="200" /></label>
+        <label>Phone numbers<input id="suPhones" maxlength="120" /></label>
+        <label>GSTIN (if you have one)<input id="suGstin" maxlength="15" placeholder="e.g. 27ABCDE1234F1Z5" /></label>
+        <label>First salesman *<input id="suSalesman" maxlength="40" placeholder="Your own name is fine" /></label>
+        <label>First bill number<input id="suFirstBill" type="number" min="1" step="1" value="1" /></label>
+        <div class="wide logo-row">
+          <img id="suLogoPreview" alt="" hidden />
+          <button id="suLogoBtn" class="ghost">Add shop logo (optional)</button>
+          <input id="suLogoFile" type="file" accept="image/png,image/jpeg" hidden />
+        </div>
+      </div>
+      <div class="actions"><button id="suSave">Start using the app</button>
+        <button id="suRestore" class="ghost">Restore from a backup instead</button><span id="suMsg"></span></div>
+    </div>
+  </div>
+  <!-- "Ask for a PIN" on: who is using the app (renderer/session.js) -->
+  <div id="login" class="login" hidden>
+    <section class="login-brand">
+      <div class="lb-shop">
+        <img id="loginLogo" class="lb-logo" alt="" hidden />
+        <h1 id="loginShop" class="lb-name"></h1>
+        <p id="loginTag" class="lb-tag"></p>
+      </div>
+      <div class="lb-clock"><b id="loginTime"></b><span id="loginDate"></span></div>
+      <div class="lb-app"><img src="assets/icon.png" alt="" /><span class="app-name"></span> <span id="loginVer"></span></div>
+    </section>
+
+    <section class="login-panel">
+      <div class="lp-inner">
+        <!-- step 1: who -->
+        <div id="loginWho">
+          <h2>Who is using the app?</h2>
+          <p class="note">Choose your name, then enter your PIN.</p>
+          <div id="loginUsers" class="login-users"></div>
+        </div>
+
+        <!-- step 2: PIN -->
+        <div id="loginPinStep" hidden>
+          <button id="loginBack" class="lp-back" type="button">&larr; Change user</button>
+          <div class="lp-user"><span id="loginAvatar" class="avatar big"></span>
+            <div><b id="loginName"></b><span id="loginRole"></span></div></div>
+          <div id="pinDots" class="pin-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <input id="loginPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN" />
+          <div id="pinPad" class="pin-pad">
+            <button type="button" data-k="1">1</button><button type="button" data-k="2">2</button><button type="button" data-k="3">3</button>
+            <button type="button" data-k="4">4</button><button type="button" data-k="5">5</button><button type="button" data-k="6">6</button>
+            <button type="button" data-k="7">7</button><button type="button" data-k="8">8</button><button type="button" data-k="9">9</button>
+            <button type="button" data-k="back" class="pk-soft" title="Delete">&#9003;</button><button type="button" data-k="0">0</button>
+            <button type="button" id="loginGo" class="pk-go" title="Log in">Log in</button>
+          </div>
+          <p id="loginMsg" class="lp-msg"></p>
+
+          <details id="loginForgot" class="forgot">
+            <summary>Forgot the owner PIN?</summary>
+            <p class="note">Enter the recovery key that was shown when the owner PIN was set, and a new owner PIN.</p>
+            <input id="recKey" placeholder="Recovery key XXXX-XXXX-XXXX-XXXX" autocomplete="off" />
+            <input id="recPin" type="password" inputmode="numeric" maxlength="6" placeholder="New owner PIN (4-6 digits)" autocomplete="off" />
+            <button id="recGo" class="ghost" type="button">Set new PIN and log in</button>
+          </details>
+        </div>
+      </div>
+    </section>
+  </div>
+  <!-- message window from the vendor (control server): shown once, the owner presses OK (renderer/about.js) -->
+  <div id="vendorMsg" class="vmsg" hidden>
+    <div class="vmsg-card" role="dialog" aria-modal="true" aria-labelledby="vendorMsgTitle">
+      <div class="vmsg-head"><span class="vmsg-icon" aria-hidden="true">i</span><div><small>Message from your vendor</small>
+        <h3 id="vendorMsgTitle"></h3></div></div>
+      <p id="vendorMsgText"></p>
+      <div class="vmsg-foot"><button id="vendorMsgOk">OK</button></div>
+    </div>
+  </div>
+  <div id="toast" hidden></div>
+  <div id="printArea"></div>
+
+  <script src="sql/sql-wasm.js"></script>
+  <script type="module" src="core/api.js"></script>
+  <script type="module" src="setup.js"></script>
+  <script type="module" src="app.js"></script>
+  <script type="module" src="about.js"></script>
+  <script type="module" src="billing.js"></script>
+  <script type="module" src="adjust.js"></script>
+  <script type="module" src="import.js"></script>
+  <script type="module" src="stickers.js"></script>
+  <script type="module" src="udhaar.js"></script>
+  <script type="module" src="categories.js"></script>
+  <script type="module" src="reports.js"></script>
+  <script type="module" src="settings.js"></script>
+  <script type="module" src="backup.js"></script>
+  <script type="module" src="salesmen.js"></script>
+</body>
+</html>
